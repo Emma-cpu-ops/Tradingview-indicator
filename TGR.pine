@@ -1,0 +1,40 @@
+//@version=6
+indicator("Tableau de Gestion du Risque", overlay=true)
+
+// --- Paramètres utilisateur ---
+account_size = input.float(10000.0, "Capital du Compte ($)", minval=0.0)
+risk_pct     = input.float(1.0, "Risque par Trade (%)", minval=0.01, maxval=100.0)
+stop_pips    = input.float(50.0, "Distance Stop Loss (en pips/points)", minval=0.01)
+pip_value    = input.float(1.0, "Valeur du Pip / Point ($ par unité)", minval=0.0001)
+table_pos    = input.string("Haut Droite", "Position du Tableau", options=["Haut Droite", "Bas Droite", "Haut Gauche", "Bas Gauche"])
+
+// --- Calculs mathématiques ---
+risk_amount   = account_size * (risk_pct / 100.0)
+position_size = risk_amount / (stop_pips * pip_value)
+
+// --- Conversion de la position du tableau ---
+t_position = switch table_pos
+    "Haut Droite" => position.top_right
+    "Bas Droite"  => position.bottom_right
+    "Haut Gauche" => position.top_left
+    => position.bottom_left
+
+// --- Création et Affichage du Tableau ---
+var table risk_table = table.new(position = t_position, columns = 2, rows = 4, bgcolor = color.new(color.black, 20), border_color = color.gray, border_width = 1)
+
+if barstate.islast
+    // En-tête
+    table.cell(risk_table, 0, 0, "GESTION DU RISQUE", text_color=color.white, bgcolor=color.navy, text_size=size.small)
+    table.cell(risk_table, 1, 0, "VALEURS", text_color=color.white, bgcolor=color.navy, text_size=size.small)
+    
+    // Ligne 1 : Capital Risqué
+    table.cell(risk_table, 0, 1, "Montant Risqué ($)", text_color=color.white, text_size=size.small)
+    table.cell(risk_table, 1, 1, str.tostring(risk_amount, "#.##") + " $", text_color=color.green, text_size=size.small)
+    
+    // Ligne 2 : Risque en %
+    table.cell(risk_table, 0, 2, "Risque du Compte", text_color=color.white, text_size=size.small)
+    table.cell(risk_table, 1, 2, str.tostring(risk_pct) + " %", text_color=color.white, text_size=size.small)
+    
+    // Ligne 3 : Taille de position conseillée
+    table.cell(risk_table, 0, 3, "Taille de Position", text_color=color.white, text_size=size.small)
+    table.cell(risk_table, 1, 3, str.tostring(position_size, "#.##") + " unités", text_color=color.yellow, text_size=size.small)

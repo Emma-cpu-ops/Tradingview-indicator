@@ -1,0 +1,19 @@
+//@version=6
+indicator("Multi-Timeframe Trend & Alerts", overlay=true)
+
+tf = input.timeframe("D", "Unité de Temps Supérieure (HTF)")
+len = input.int(50, "Longueur de l'EMA HTF")
+src = input.source(close, "Source")
+
+htf_ema = request.security(syminfo.tickerid, tf, ta.ema(src, len), gaps=barmerge.gaps_off, lookahead=barmerge.lookahead_off)
+
+plot(htf_ema, title="EMA Multi-Timeframe", color=color.orange, linewidth=3)
+
+bullish_cross = ta.crossover(close, htf_ema)
+bearish_cross = ta.crossunder(close, htf_ema)
+
+plotshape(bullish_cross, title="Signal Haussier", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small)
+plotshape(bearish_cross, title="Signal Baissier", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small)
+
+alertcondition(bullish_cross, title="Prix croise EMA HTF (Haussier)", message="Alerte MTF : Le prix vient de croiser l'EMA supérieure à la hausse !")
+alertcondition(bearish_cross, title="Prix croise EMA HTF (Baissier)", message="Alerte MTF : Le prix vient de croiser l'EMA supérieure à la baisse !")
